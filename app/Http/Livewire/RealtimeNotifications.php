@@ -3,33 +3,27 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\On;
 
 // Laravel Echo + Pusher: real WebSocket push.
 // Server broadcasts an event → Pusher relays → Echo client receives →
 // Livewire component re-renders via $listeners.
 //
-// In React/Firebase: onSnapshot() fires on DB change.
-// In Livewire/Echo: getListeners() returns channel subscriptions.
-//
-// Flow:
-// 1. Something happens server-side (new order, payment received)
-// 2. PHP: broadcast(new OrderReceived($order));
-// 3. Pusher relays to all subscribed clients
-// 4. Livewire Echo listener fires -> PHP method called -> re-render
-//
-// "C'est comme Firebase onSnapshot mais cote serveur!
-//  Et ca marche avec n'importe quelle DB, pas juste Firestore."
+// LIVEWIRE 3 MIGRATION — Jul 2023
+// getListeners() with Echo channels now uses #[On] where possible.
+// Dynamic Echo channels (user-specific) still use getListeners() —
+// #[On] doesn't support dynamic values, so mixed approach is correct.
+// LW3 docs confirm: use getListeners() for Echo channels.
 
 class RealtimeNotifications extends Component
 {
     public array $notifications = [];
     public int $unreadCount = 0;
 
-    // Echo channel listeners — declared as getListeners() for dynamic channels
+    // Echo channels still need getListeners() — #[On] can't be dynamic
     protected function getListeners(): array
     {
         return [
-            // Listen to private user channel via Echo
             'echo-private:users.' . (auth()->id() ?? 1) . ',NewNotification' => 'onNewNotification',
             'echo:public-updates,SystemAlert' => 'onSystemAlert',
         ];

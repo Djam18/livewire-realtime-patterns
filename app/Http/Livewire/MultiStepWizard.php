@@ -3,14 +3,17 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use Livewire\Attributes\Computed;
 
 // Multi-step form wizard — Livewire is perfect for this.
 // React pattern: useState for step + separate component per step + stepper UI.
 // Livewire pattern: single component, $currentStep property, per-step $rules,
 // validate() only the current step's fields before advancing.
 //
-// Key Livewire advantage: single server component, no prop drilling between steps.
-// React would need Context or Zustand to share form state across step components.
+// LIVEWIRE 3 MIGRATION — Jul 2023
+// getProgressPercentProperty() → #[Computed] attribute (LW3 caches computed properties)
+// getStepLabelsProperty()      → #[Computed] attribute
+// No more magic get*Property() naming — explicit #[Computed] is clearer.
 
 class MultiStepWizard extends Component
 {
@@ -76,12 +79,15 @@ class MultiStepWizard extends Component
         $this->currentStep = 1;
     }
 
-    public function getProgressPercentProperty(): int
+    // LW3: #[Computed] replaces get*Property() magic naming
+    #[Computed]
+    public function progressPercent(): int
     {
         return (int) (($this->currentStep - 1) / ($this->totalSteps - 1) * 100);
     }
 
-    public function getStepLabelsProperty(): array
+    #[Computed]
+    public function stepLabels(): array
     {
         return ['Personal', 'Company', 'Plan'];
     }
